@@ -1,0 +1,118 @@
+# ccapp/models.py
+from django.db import models
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.conf import settings
+
+# Users ===============================
+class UserManager(BaseUserManager):
+    def create_user(self, email, full_name=None, phone=None, password=None, **extra_fields):
+        if not email:
+            raise ValueError("The Email must be set")
+        email = self.normalize_email(email)
+        user = self.model(email=email, full_name=full_name, phone=phone, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, full_name=None, phone=None, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+
+        return self.create_user(email, full_name, phone, password, **extra_fields)
+
+class User(AbstractBaseUser):
+    email = models.EmailField(unique=True)
+    full_name = models.CharField(max_length=255)
+    phone = models.CharField(max_length=20, blank=True)
+    role = models.CharField(max_length=50, default='Manager')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    is_active = models.BooleanField(default=True)
+    is_admin = models.BooleanField(default=False)
+
+    objects = UserManager()
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['full_name']
+
+    def __str__(self):
+        return self.email
+
+    @property
+    def is_staff(self):
+        return self.is_admin
+
+# Contracts ==========================
+class Contract(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
+    total_cost = models.DecimalField(max_digits=10, decimal_places=2)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='contracts_user')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+    
+# Subcontractors ==============================
+class Subcontractor(models.Model):
+    name = models.CharField(max_length=255)
+    contact_person = models.CharField(max_length=255, blank=True, null=True)
+    phone = models.CharField(max_length=50, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING, related_name="subcontractors"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+
+# Construction Sites ==============================
+# class ConstructionSite(models.Model):
+#     name = models.CharField(max_length=255)
+#     contact_person = models.CharField(max_length=255, blank=True, null=True)
+#     phone = models.CharField(max_length=50, blank=True, null=True)
+#     email = models.EmailField(blank=True, null=True)
+#     address = models.TextField(blank=True, null=True)
+#     created_by = models.ForeignKey(
+#         settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING, related_name="subcontractors"
+#     )
+#     created_at = models.DateTimeField(auto_now_add=True)
+
+#     def __str__(self):
+#         return self.name
+
+
+# RFQs =============================================
+
+class RFQ(models.Model):
+    STATUS_CHOICES = [
+        ('draft', 'Draft'),
+        ('sent', 'Sent'),
+        ('responded', 'Responded'),
+        ('closed', 'Closed'),
+    ]
+
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    due_date = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+    
+    # Relations
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="rfqs")  
+    subcontractor = models.ForeignKey(Subcontractor, on_delete=models.CASCADE, related_name="rfqs")
+
+    # Example field: estimated cost
+    estimated_cost = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+    def __str__(self):
+        return f"RFQ {self.id} - {self.title}"
+    
+

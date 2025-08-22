@@ -1,0 +1,50 @@
+
+psql -U postgres
+
+- list users
+\du 
+
+- list databases
+\l
+
+- switch to database
+\c
+
+- list database tables
+\dt
+
+- Describe a table
+\d <table-name>
+\d+
+
+- list all schemas
+\dn <username>
+
+- list all functions
+\df
+
+- list all views
+\dv
+
+- save query results to the file
+\o
+
+- run commands from file 
+\i psql_commands.txt
+
+\q - quit
+
+psql -U postgres -h localhost -p 5432
+
+psql -U ccuser -d ccdb -h localhost -p 5432
+
+chcp 1252
+
+=====================================
+
+CREATE DATABASE ccdb;
+CREATE USER ccuser WITH PASSWORD 'ccpassword';
+ALTER ROLE ccuser SET client_encoding TO 'UTF8';
+ALTER ROLE ccuser SET default_transaction_isolation TO 'read committed';
+ALTER ROLE ccuser SET timezone TO 'UTC';
+GRANT ALL PRIVILEGES ON DATABASE ccdb TO ccuser;
