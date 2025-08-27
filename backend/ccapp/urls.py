@@ -14,6 +14,7 @@ from rest_framework_simplejwt.views import (
 router = DefaultRouter()
 router.register(r'contracts', ContractViewSet)
 router.register(r'subcontractors', SubcontractorViewSet)
+router.register(r'payments', PaymentViewSet)
 
 # urlpatterns = [    path('', include(router.urls)),]
 

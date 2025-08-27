@@ -106,13 +106,32 @@ class RFQ(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
     
     # Relations
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="rfqs")  
-    subcontractor = models.ForeignKey(Subcontractor, on_delete=models.CASCADE, related_name="rfqs")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="rfqs_user")  
+    subcontractor = models.ForeignKey(Subcontractor, on_delete=models.CASCADE, related_name="rfqs_subcontractor")
 
     # Example field: estimated cost
     estimated_cost = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     def __str__(self):
         return f"RFQ {self.id} - {self.title}"
+    
+
+# Payments =======================================
+
+class Payment(models.Model):
+    contract = models.ForeignKey(Contract, on_delete=models.DO_NOTHING, related_name="rel_contract")
+    amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    STATUS_CHOICES = [
+        ('created', 'Created'),
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('checked', 'Checked'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='created')
+    execute_date = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Payment {self.id} {self.contract}"
     
 

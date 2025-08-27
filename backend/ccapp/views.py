@@ -8,11 +8,12 @@ from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from .models import Contract, Subcontractor, RFQ
-from .serializers import ContractSerializer, SubcontractorSerializer, RFQSerializer
+from .serializers import *
 from rest_framework import generics
 
 
 User = get_user_model()
+
 
 class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -21,20 +22,27 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            return Response({'message': 'User registered successfully'}, status=status.HTTP_201_CREATED)
+            return Response(
+                {"message": "User registered successfully"},
+                status=status.HTTP_201_CREATED,
+            )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class LoginView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        email = request.data.get('email')
-        password = request.data.get('password')
+        email = request.data.get("email")
+        password = request.data.get("password")
         user = authenticate(request, email=email, password=password)
 
         if user is not None:
-            return Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
-        return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({"message": "Login successful"}, status=status.HTTP_200_OK)
+        return Response(
+            {"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED
+        )
+
 
 class UserListView(APIView):
     # permission_classes = [permissions.AllowAny]  # Optional: only allow logged-in users
@@ -44,9 +52,10 @@ class UserListView(APIView):
         users = User.objects.all()
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data)
-    
+
+
 class UserDetailView(APIView):
-    #permission_classes = [permissions.AllowAny]  # Or [permissions.IsAuthenticated] if you want auth
+    # permission_classes = [permissions.AllowAny]  # Or [permissions.IsAuthenticated] if you want auth
     # permission_classes = [IsAuthenticated]
     permission_classes = [permissions.AllowAny]
 
@@ -54,7 +63,7 @@ class UserDetailView(APIView):
         user = get_object_or_404(User, pk=pk)
         serializer = UserSerializer(user)
         return Response(serializer.data)
-    
+
     def put(self, request, pk):
         user = get_object_or_404(User, pk=pk)
         serializer = UserSerializer(user, data=request.data, partial=True)
@@ -62,13 +71,14 @@ class UserDetailView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
-    
-    
-@api_view(['GET'])
+
+
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def current_user(request):
     serializer = UserSerializer(request.user)
     return Response(serializer.data)
+
 
 class UserMeView(APIView):
     permission_classes = [IsAuthenticated]
@@ -83,7 +93,8 @@ class UserMeView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
-    
+
+
 # Contract ============================
 class ContractViewSet(viewsets.ModelViewSet):
     queryset = Contract.objects.all()
@@ -93,14 +104,18 @@ class ContractViewSet(viewsets.ModelViewSet):
     # def get_queryset(self):
     #     return Contract.objects.all()
 
+
 # Subcontractor =======================
 
+
 class SubcontractorViewSet(viewsets.ModelViewSet):
-    queryset = Subcontractor.objects.all().order_by('-created_at')
+    queryset = Subcontractor.objects.all().order_by("-created_at")
     serializer_class = SubcontractorSerializer
     permission_classes = [permissions.AllowAny]
 
+
 # RFQs ================================
+
 
 class RFQListCreateView(generics.ListCreateAPIView):
     queryset = RFQ.objects.all()
@@ -111,6 +126,12 @@ class RFQDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = RFQ.objects.all()
     serializer_class = RFQSerializer
 
+
+class PaymentViewSet(viewsets.ModelViewSet):
+    queryset = Payment.objects.all().order_by("-created_at")
+    serializer_class = PaymentSerializer
+    permission_classes = [permissions.AllowAny]
+
 # Email with Attachments ====================
 
 import io
@@ -118,6 +139,7 @@ from django.core.mail import EmailMessage
 from django.http import HttpResponse
 from reportlab.pdfgen import canvas
 from .models import RFQ
+
 
 def send_rfq_email(request, rfq_id):
     rfq = RFQ.objects.select_related("user", "subcontractor").get(id=rfq_id)
