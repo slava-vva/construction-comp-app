@@ -15,6 +15,7 @@ router = DefaultRouter()
 router.register(r'contracts', ContractViewSet)
 router.register(r'subcontractors', SubcontractorViewSet)
 router.register(r'payments', PaymentViewSet)
+router.register(r'messages', MessageListViewSet)
 
 # urlpatterns = [    path('', include(router.urls)),]
 

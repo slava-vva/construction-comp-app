@@ -15,7 +15,7 @@ SECRET_KEY = 'django-insecure-p&vb%9co83mu4$))h@z5ber20b#21u!dn8ib1t6)2+v@@8t_*i
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["notes.local", "localhost"]
+ALLOWED_HOSTS = ["*"]
 
 AUTH_USER_MODEL = 'ccapp.User'
 #AUTH_USER_MODEL = 'ccapp.User'

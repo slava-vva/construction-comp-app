@@ -122,3 +122,15 @@ class PaymentSerializer(serializers.ModelSerializer):
             "execute_date",
             "status",
         ]
+
+
+
+class MessageListSerializer(serializers.ModelSerializer):
+    sender = serializers.StringRelatedField(read_only=True)
+    receiver = serializers.StringRelatedField(read_only=True)
+    sender_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), source='sender', write_only=True)
+    receiver_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), source='receiver', write_only=True)
+
+    class Meta:
+        model = MessageList
+        fields = ['id', 'sender', 'receiver', 'text', 'created_at', 'sender_id', 'receiver_id']

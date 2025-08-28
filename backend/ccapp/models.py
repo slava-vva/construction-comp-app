@@ -134,4 +134,18 @@ class Payment(models.Model):
     def __str__(self):
         return f"Payment {self.id} {self.contract}"
     
+    #  Messages ======================================
+    
+class MessageList(models.Model):
+    sender = models.ForeignKey(User, related_name="sent_messages", on_delete=models.DO_NOTHING)
+    receiver = models.ForeignKey(User, related_name="received_messages", on_delete=models.DO_NOTHING)
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"{self.sender} -> {self.receiver}: {self.text[:20]}"
+    
 

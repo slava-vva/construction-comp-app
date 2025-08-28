@@ -182,3 +182,9 @@ Contact Helicon
     email.send()
 
     return HttpResponse({"status": "Email sent with PDF"})
+
+
+class MessageListViewSet(viewsets.ModelViewSet):
+    queryset = MessageList.objects.all()
+    serializer_class = MessageListSerializer
+    permission_classes = [permissions.AllowAny]
