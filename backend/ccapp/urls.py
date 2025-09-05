@@ -16,6 +16,7 @@ router.register(r'contracts', ContractViewSet)
 router.register(r'subcontractors', SubcontractorViewSet)
 router.register(r'payments', PaymentViewSet)
 router.register(r'messages', MessageListViewSet)
+router.register(r'chat-users', ChatUserViewSet)
 
 # urlpatterns = [    path('', include(router.urls)),]
 

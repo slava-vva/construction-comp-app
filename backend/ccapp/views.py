@@ -188,3 +188,16 @@ class MessageListViewSet(viewsets.ModelViewSet):
     queryset = MessageList.objects.all()
     serializer_class = MessageListSerializer
     permission_classes = [permissions.AllowAny]
+
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter
+
+class ChatUserViewSet(viewsets.ModelViewSet):
+    queryset = ChatUser.objects.all()
+    serializer_class = ChatUserSerializer
+    permission_classes = [permissions.AllowAny]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['name']  # Make sure 'name' is a field in your model
+    # filter_backends = [SearchFilter]
+    # search_fields = ['name']
+

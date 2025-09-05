@@ -20,6 +20,13 @@ class UserManager(BaseUserManager):
 
         return self.create_user(email, full_name, phone, password, **extra_fields)
 
+class ChatUser(models.Model):
+    name = models.CharField(max_length=50, null=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return self.name    
+
 class User(AbstractBaseUser):
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=255)
@@ -29,6 +36,8 @@ class User(AbstractBaseUser):
 
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
+    
+    chat_user = models.ForeignKey(ChatUser, on_delete=models.DO_NOTHING, related_name="chat_user_ref", null=True)
 
     objects = UserManager()
 
@@ -136,9 +145,10 @@ class Payment(models.Model):
     
     #  Messages ======================================
     
+    
 class MessageList(models.Model):
-    sender = models.ForeignKey(User, related_name="sent_messages", on_delete=models.DO_NOTHING)
-    receiver = models.ForeignKey(User, related_name="received_messages", on_delete=models.DO_NOTHING)
+    sender = models.ForeignKey(ChatUser, related_name="sent_messages", on_delete=models.DO_NOTHING)
+    receiver = models.ForeignKey(ChatUser, related_name="received_messages", on_delete=models.DO_NOTHING)
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -147,5 +157,7 @@ class MessageList(models.Model):
 
     def __str__(self):
         return f"{self.sender} -> {self.receiver}: {self.text[:20]}"
+    
+
     
 

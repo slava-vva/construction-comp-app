@@ -22,10 +22,20 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
 
 
+class ChatUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChatUser
+        fields = '__all__'
+
+
 class UserSerializer(serializers.ModelSerializer):
+    chat_user = serializers.StringRelatedField(read_only=True)
+    chat_user_id = serializers.PrimaryKeyRelatedField(
+        queryset=ChatUser.objects.all(), source="chat_user"
+    )
     class Meta:
         model = User
-        fields = ["id", "email", "full_name", "phone", "role", "created_at"]
+        fields = ["id", "email", "full_name", "phone", "role", "chat_user", "chat_user_id", "created_at"]
 
 
 # Contract =============================
@@ -124,12 +134,11 @@ class PaymentSerializer(serializers.ModelSerializer):
         ]
 
 
-
 class MessageListSerializer(serializers.ModelSerializer):
     sender = serializers.StringRelatedField(read_only=True)
     receiver = serializers.StringRelatedField(read_only=True)
-    sender_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), source='sender', write_only=True)
-    receiver_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), source='receiver', write_only=True)
+    sender_id = serializers.PrimaryKeyRelatedField(queryset=ChatUser.objects.all(), source='sender', write_only=True)
+    receiver_id = serializers.PrimaryKeyRelatedField(queryset=ChatUser.objects.all(), source='receiver', write_only=True)
 
     class Meta:
         model = MessageList
