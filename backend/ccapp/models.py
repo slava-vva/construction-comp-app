@@ -22,6 +22,8 @@ class UserManager(BaseUserManager):
 
 class ChatUser(models.Model):
     name = models.CharField(max_length=50, null=False)
+    user_id = models.IntegerField(null=True)
+    chat_id = models.IntegerField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):

@@ -40,7 +40,8 @@ async def save_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.message.chat.id
     text = update.message.text
     
-    username = f"{user.username} {chat_id}"
+    # username = f"{user.username} {chat_id}"
+    username = f"{user.username}"
 
     # Get or create ChatUser
     sender_id = get_or_create_chat_user(username)

@@ -201,3 +201,37 @@ class ChatUserViewSet(viewsets.ModelViewSet):
     # filter_backends = [SearchFilter]
     # search_fields = ['name']
 
+
+# chat_app/views.py
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from . import telegram_utils
+
+last_update_id = 855453219
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def fetch_telegram(request):
+    global last_update_id
+    updates = telegram_utils.fetch_updates(offset=last_update_id)
+    telegram_utils.process_updates(updates)
+
+    # Save last_update_id to skip old messages
+    results = updates.get("result", [])
+    if results:
+        last_update_id = results[-1]["update_id"] + 1
+
+    return Response({"status": "ok", "fetched": len(results)})
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def send_telegram(request):
+    chat_id = request.data.get("chat_id")
+    text = request.data.get("text")
+    if not chat_id or not text:
+        return Response({"error": "chat_id and text required"}, status=400)
+
+    resp = telegram_utils.send_message(chat_id, text)
+    return Response(resp)
+

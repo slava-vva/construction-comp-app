@@ -33,6 +33,8 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('rfqs/', RFQListCreateView.as_view(), name='rfq-list'),
     path('rfqs/<int:pk>/', RFQDetailView.as_view(), name='rfq-detail'),
+    path("telegram/fetch/", fetch_telegram, name="telegram-fetch"),
+    path("telegram/send/", send_telegram, name="telegram-send"),
     
 ]
 
