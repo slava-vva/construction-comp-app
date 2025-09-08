@@ -15,3 +15,9 @@ print("Hi Django from script")
 for u in ChatUser.objects.all():
     print(u.id, u.chat_id, u.name, u.created_at)
 
+# n_chat = ChatUser.objects.get(id=9)
+# n_chat.delete()
+n_chat, c_chat = ChatUser.objects.get_or_create(name="slava_1", chat_id=12321344, user_id=21321344)
+
+print(n_chat)
+print(c_chat)

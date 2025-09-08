@@ -35,6 +35,7 @@ urlpatterns = [
     path('rfqs/<int:pk>/', RFQDetailView.as_view(), name='rfq-detail'),
     path("telegram/fetch/", fetch_telegram, name="telegram-fetch"),
     path("telegram/send/", send_telegram, name="telegram-send"),
+    path("telegram/poll/", telegram_poll, name="telegram_poll"),
     
 ]
 

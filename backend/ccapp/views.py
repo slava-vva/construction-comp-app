@@ -208,7 +208,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from . import telegram_utils
 
-last_update_id = 855453219
+last_update_id = 0 #855453219
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
@@ -228,10 +228,18 @@ def fetch_telegram(request):
 @permission_classes([AllowAny])
 def send_telegram(request):
     chat_id = request.data.get("chat_id")
+    chat_user_id = request.data.get("chat_user_id")
     text = request.data.get("text")
-    if not chat_id or not text:
-        return Response({"error": "chat_id and text required"}, status=400)
+    if not chat_id or not chat_user_id or not text:
+        return Response({"error": "chat_id, chat_user_id and text required"}, status=400)
 
-    resp = telegram_utils.send_message(chat_id, text)
+    resp = telegram_utils.send_message(chat_id, chat_user_id, text)
     return Response(resp)
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def telegram_poll(request):
+    from .telegram_utils import poll_updates
+    result = poll_updates()
+    return Response(result)
 

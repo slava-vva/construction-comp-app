@@ -29,9 +29,11 @@ class ChatUserSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    chat_user = serializers.StringRelatedField(read_only=True)
+    # chat_user = serializers.StringRelatedField(read_only=True)
+    chat_user = ChatUserSerializer(read_only=True)
+    
     chat_user_id = serializers.PrimaryKeyRelatedField(
-        queryset=ChatUser.objects.all(), source="chat_user"
+        queryset=ChatUser.objects.all(), source="chat_user", required=False, allow_null=True
     )
     class Meta:
         model = User
