@@ -41,7 +41,7 @@ def process_updates(updates):
 from .serializers import MessageListSerializer
 # from rest_framework.response import Response
 
-def send_message(chat_id, chat_user_id, text):
+def send_message(sender_id, chat_id, chat_user_id, text):
     url = f"{BASE_URL}/sendMessage"
     payload = {"chat_id": chat_id, "text": text}
     resp = requests.post(url, json=payload)
@@ -49,7 +49,7 @@ def send_message(chat_id, chat_user_id, text):
         # Save in DB after successful send
         msg = MessageList.objects.create(
             receiver_id=chat_user_id,
-            sender_id=2,  # manager/system/etc.
+            sender_id=sender_id,  # manager/system/etc.
             text=text
         )
         serializer = MessageListSerializer(msg)
@@ -57,7 +57,14 @@ def send_message(chat_id, chat_user_id, text):
         # return resp.json()
     else:
         # log error if needed
-        return {"error": resp.text, "status": resp.status_code}
+        # return {"error": resp.text, "status": resp.status_code}
+        msg = MessageList.objects.create(
+            receiver_id=chat_user_id,
+            sender_id=sender_id,  # manager/system/etc.
+            text=text
+        )
+        serializer = MessageListSerializer(msg)
+        return serializer.data
     
 
 # store last update_id to avoid duplicates

@@ -49,18 +49,29 @@ class UserListView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request):
-        users = User.objects.all()
-        serializer = UserSerializer(users, many=True)
-        return Response(serializer.data)
+        email = request.query_params.get("email")
+        if email:
+            user = get_object_or_404(User, email=email)
+            serializer = UserSerializer(user)  # no many=True
+            return Response(serializer.data)
+        else:
+            users = User.objects.all()
+            serializer = UserSerializer(users, many=True)
+            return Response(serializer.data)
 
-
-class UserDetailView(APIView):
     # permission_classes = [permissions.AllowAny]  # Or [permissions.IsAuthenticated] if you want auth
     # permission_classes = [IsAuthenticated]
+class UserDetailView(APIView):
     permission_classes = [permissions.AllowAny]
 
-    def get(self, request, pk):
-        user = get_object_or_404(User, pk=pk)
+    def get(self, request, pk=None, email=None):
+        if pk:
+            user = get_object_or_404(User, pk=pk)
+        elif email:
+            user = get_object_or_404(User, email=email)
+        else:
+            return Response({"error": "No identifier provided"}, status=400)
+        
         serializer = UserSerializer(user)
         return Response(serializer.data)
 
@@ -227,13 +238,14 @@ def fetch_telegram(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def send_telegram(request):
+    sender_id = request.data.get("sender_id")
     chat_id = request.data.get("chat_id")
     chat_user_id = request.data.get("chat_user_id")
     text = request.data.get("text")
     if not chat_id or not chat_user_id or not text:
-        return Response({"error": "chat_id, chat_user_id and text required"}, status=400)
+        return Response({"error": "chat_id, sender_id, chat_user_id and text required"}, status=400)
 
-    resp = telegram_utils.send_message(chat_id, chat_user_id, text)
+    resp = telegram_utils.send_message(sender_id, chat_id, chat_user_id, text)
     return Response(resp)
 
 @api_view(["GET"])

@@ -28,6 +28,7 @@ urlpatterns = [
     path('login_s/', LoginView.as_view(), name='login'),
     path('users/', UserListView.as_view(), name='user-list'),
     path('users/<int:pk>/', UserDetailView.as_view(), name='user-detail'),
+    path("users/email/<str:email>/", UserDetailView.as_view(), name="user-detail-by-email"),
     # path('me/', current_user),
     path('me/', UserMeView.as_view(), name='user-me'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

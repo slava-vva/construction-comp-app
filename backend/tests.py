@@ -12,7 +12,12 @@ from ccapp.models import ChatUser
 
 print("Hi Django from script")
 
+i = 1
 for u in ChatUser.objects.all():
+    if u.chat_id is None:
+        u.chat_id = i
+        u.save()
+        i += i
     print(u.id, u.chat_id, u.name, u.created_at)
 
 # n_chat = ChatUser.objects.get(id=9)

@@ -90,12 +90,12 @@ class SubcontractorSerializer(serializers.ModelSerializer):
 class RFQSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     user_id = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), write_only=True, source="user"
+        queryset=User.objects.all(), source="user"
     )
 
     subcontractor = SubcontractorSerializer(read_only=True)
     subcontractor_id = serializers.PrimaryKeyRelatedField(
-        queryset=Subcontractor.objects.all(), write_only=True, source="subcontractor"
+        queryset=Subcontractor.objects.all(), source="subcontractor"
     )
 
     class Meta:
