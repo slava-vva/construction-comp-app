@@ -255,3 +255,33 @@ def telegram_poll(request):
     result = poll_updates()
     return Response(result)
 
+
+#ConstructionObject ==========================
+
+from .models import ConstructionObject
+from .serializers import ConstructionObjectSerializer
+
+class ConstructionObjectViewSet(viewsets.ModelViewSet):
+    queryset = ConstructionObject.objects.all().order_by("-created_at")
+    serializer_class = ConstructionObjectSerializer
+
+# Bidding ======================================
+
+class BiddingViewSet(viewsets.ModelViewSet):
+    queryset = Bidding.objects.all().order_by("-created_at")
+    serializer_class = BiddingSerializer
+    permission_classes = [AllowAny]
+
+    def perform_create(self, serializer):
+        # set created_by from request if available
+        user = None
+        if hasattr(self.request, "user") and self.request.user and self.request.user.is_authenticated:
+            user = self.request.user
+        serializer.save(created_by=user)
+        
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        title = self.request.query_params.get("title")
+        if title:
+            queryset = queryset.filter(title__icontains=title)
+        return queryset

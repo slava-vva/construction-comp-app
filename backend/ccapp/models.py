@@ -161,5 +161,77 @@ class MessageList(models.Model):
         return f"{self.sender} -> {self.receiver}: {self.text[:20]}"
     
 
-    
+class ConstructionObject(models.Model):
+    STATUS_CHOICES = [
+        ("planned", "Planned"),
+        ("in_progress", "In Progress"),
+        ("completed", "Completed"),
+        ("on_hold", "On Hold"),
+    ]
+
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    location = models.CharField(max_length=255, blank=True)
+    total_cost = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="planned")
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="construction_objects")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+
+
+# Bidding ==============================
+
+class Bidding(models.Model):
+    STATUS_CHOICES = [
+        ("draft", "Draft"),
+        ("open", "Open"),
+        ("closed", "Closed"),
+        ("awarded", "Awarded"),
+        ("cancelled", "Cancelled"),
+    ]
+
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    contract = models.ForeignKey(Contract, on_delete=models.SET_NULL, null=True, blank=True, related_name="biddings")
+    construction_object = models.ForeignKey(ConstructionObject, on_delete=models.SET_NULL, null=True, blank=True, related_name="biddings")
+    rfq = models.ForeignKey(RFQ, on_delete=models.SET_NULL, null=True, blank=True, related_name="biddings")
+    subcontractors = models.ManyToManyField(Subcontractor, through="BiddingParticipant", related_name="biddings")
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="draft")
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="created_biddings")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+
+class BiddingParticipant(models.Model):
+    REPLIED_STATUS = [
+        ("pending", "Pending"),
+        ("replied", "Replied"),
+        ("rejected", "Rejected"),
+        ("accepted", "Accepted"),
+    ]
+    bidding = models.ForeignKey(Bidding, on_delete=models.CASCADE, related_name="participants")
+    subcontractor = models.ForeignKey(Subcontractor, on_delete=models.CASCADE, related_name="bidding_participations")
+    offered_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    conditions = models.TextField(blank=True)
+    status = models.CharField(max_length=20, default="added")  # e.g. submitted/accepted/rejected
+    replied_status = models.CharField(max_length=20, choices=REPLIED_STATUS, default="pending")  # e.g. submitted/accepted/rejected
+    proposal = models.TextField(blank=True)
+    in_short_list = models.BooleanField(default=False)
+    replied_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("bidding", "subcontractor")
+
+    def __str__(self):
+        return f"{self.subcontractor.name} in {self.bidding.title}"
 
