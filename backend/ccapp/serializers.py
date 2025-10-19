@@ -230,6 +230,8 @@ class BiddingParticipantSerializer(serializers.ModelSerializer):
             "replied_status",
             "proposal",
             "in_short_list",
+            "mail_subject",
+            "mail_body",
             "replied_at",
             "created_at",
         ]
@@ -317,6 +319,8 @@ class BiddingSerializer(serializers.ModelSerializer):
                 replied_status=p.get("replied_status", "pending"),
                 proposal=p.get("proposal", ""),
                 in_short_list=p.get("in_short_list", False),
+                mail_subject=p.get("mail_subject", ""),
+                mail_body=p.get("mail_body", "")
             )
         return bidding
 
@@ -337,5 +341,7 @@ class BiddingSerializer(serializers.ModelSerializer):
                     replied_status=p.get("replied_status", "pending"),
                     proposal=p.get("proposal", ""),
                     in_short_list=p.get("in_short_list", False),
+                    mail_subject=p.get("mail_subject", ""),
+                    mail_body=p.get("mail_body", "")
                 )
         return instance

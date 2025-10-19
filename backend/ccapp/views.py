@@ -61,6 +61,8 @@ class UserListView(APIView):
 
     # permission_classes = [permissions.AllowAny]  # Or [permissions.IsAuthenticated] if you want auth
     # permission_classes = [IsAuthenticated]
+
+
 class UserDetailView(APIView):
     permission_classes = [permissions.AllowAny]
 
@@ -71,7 +73,7 @@ class UserDetailView(APIView):
             user = get_object_or_404(User, email=email)
         else:
             return Response({"error": "No identifier provided"}, status=400)
-        
+
         serializer = UserSerializer(user)
         return Response(serializer.data)
 
@@ -143,6 +145,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
     serializer_class = PaymentSerializer
     permission_classes = [permissions.AllowAny]
 
+
 # Email with Attachments ====================
 
 import io
@@ -200,15 +203,17 @@ class MessageListViewSet(viewsets.ModelViewSet):
     serializer_class = MessageListSerializer
     permission_classes = [permissions.AllowAny]
 
+
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
+
 
 class ChatUserViewSet(viewsets.ModelViewSet):
     queryset = ChatUser.objects.all()
     serializer_class = ChatUserSerializer
     permission_classes = [permissions.AllowAny]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['name']  # Make sure 'name' is a field in your model
+    filterset_fields = ["name"]  # Make sure 'name' is a field in your model
     # filter_backends = [SearchFilter]
     # search_fields = ['name']
 
@@ -219,7 +224,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from . import telegram_utils
 
-last_update_id = 0 #855453219
+last_update_id = 0  # 855453219
+
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
@@ -235,6 +241,7 @@ def fetch_telegram(request):
 
     return Response({"status": "ok", "fetched": len(results)})
 
+
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def send_telegram(request):
@@ -243,29 +250,39 @@ def send_telegram(request):
     chat_user_id = request.data.get("chat_user_id")
     text = request.data.get("text")
     if not chat_id or not chat_user_id or not text:
-        return Response({"error": "chat_id, sender_id, chat_user_id and text required"}, status=400)
+        return Response(
+            {"error": "chat_id, sender_id, chat_user_id and text required"}, status=400
+        )
 
     resp = telegram_utils.send_message(sender_id, chat_id, chat_user_id, text)
     return Response(resp)
+
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def telegram_poll(request):
     from .telegram_utils import poll_updates
+
     result = poll_updates()
     return Response(result)
 
 
-#ConstructionObject ==========================
+# ConstructionObject ==========================
 
 from .models import ConstructionObject
 from .serializers import ConstructionObjectSerializer
+
 
 class ConstructionObjectViewSet(viewsets.ModelViewSet):
     queryset = ConstructionObject.objects.all().order_by("-created_at")
     serializer_class = ConstructionObjectSerializer
 
+
 # Bidding ======================================
+
+from rest_framework.decorators import action
+from django.template.loader import render_to_string
+from .utils.pdf_utils import generate_rfq_pdf
 
 class BiddingViewSet(viewsets.ModelViewSet):
     queryset = Bidding.objects.all().order_by("-created_at")
@@ -275,13 +292,74 @@ class BiddingViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         # set created_by from request if available
         user = None
-        if hasattr(self.request, "user") and self.request.user and self.request.user.is_authenticated:
+        if (
+            hasattr(self.request, "user")
+            and self.request.user
+            and self.request.user.is_authenticated
+        ):
             user = self.request.user
         serializer.save(created_by=user)
-        
+
     def get_queryset(self):
         queryset = super().get_queryset()
         title = self.request.query_params.get("title")
         if title:
             queryset = queryset.filter(title__icontains=title)
         return queryset
+
+    @action(detail=True, methods=["post"])
+    def send_letter(self, request, pk=None):
+        bidding = self.get_object()
+        subcontractors = bidding.subcontractors.all()  # Adjust this to your model field
+        for sub in subcontractors:
+            context = {
+                "bidding": bidding,
+                "subcontractor": sub,
+            }
+            message = render_to_string("emails/bidding_letter.html", context)
+            email = EmailMessage(
+                subject=f"Invitation to Bid: {bidding.title}",
+                body=message,
+                from_email=None,  # Uses DEFAULT_FROM_EMAIL
+                to=[sub.email],
+            )
+            email.content_subtype = "html"
+            email.send()
+
+        return Response(
+            {"message": "Emails sent successfully!"}, status=status.HTTP_200_OK
+        )
+
+    @action(detail=True, methods=["post"])
+    def send_letter_with_pdf(self, request, pk=None):
+        bidding = self.get_object()
+        rfq = bidding.rfq
+
+        if not rfq:
+            return Response(
+                {"error": "No RFQ associated with this bidding."}, status=400
+            )
+
+        # Generate PDF in memory
+        pdf_buffer = generate_rfq_pdf(rfq)
+
+        # Render email body (you can also use a template)
+        subject = f"RFQ Invitation: {bidding.title}"
+        message = render_to_string(
+            "emails/bidding_letter.html", {"bidding": bidding, "rfq": rfq}
+        )
+
+        # Send to all subcontractors
+        for subcontractor in bidding.subcontractors.all():
+            email = EmailMessage(
+                subject,
+                message,
+                from_email=None,
+                to=[subcontractor.email],
+            )
+            email.content_subtype = "html"
+            email.attach(f"RFQ_{rfq.id}.pdf", pdf_buffer.read(), "application/pdf")
+            pdf_buffer.seek(0)
+            email.send(fail_silently=False)
+
+        return Response({"message": "Emails sent with RFQ PDF attached."})

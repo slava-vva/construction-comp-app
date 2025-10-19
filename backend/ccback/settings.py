@@ -79,7 +79,7 @@ ROOT_URLCONF = 'ccback.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -165,10 +165,14 @@ CORS_ALLOW_ALL_ORIGINS = True  # for dev only!
 # ]
 
 # For Email notification 
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'your_email@gmail.com'
-EMAIL_HOST_PASSWORD = 'your_password_or_app_password'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = 'vva.einar@gmail.com'
+EMAIL_HOST_PASSWORD = 'wzak scxn rblu zvwl'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+

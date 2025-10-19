@@ -226,6 +226,8 @@ class BiddingParticipant(models.Model):
     replied_status = models.CharField(max_length=20, choices=REPLIED_STATUS, default="pending")  # e.g. submitted/accepted/rejected
     proposal = models.TextField(blank=True)
     in_short_list = models.BooleanField(default=False)
+    mail_subject = models.CharField(max_length=255, blank=True)
+    mail_body = models.TextField(blank=True)
     replied_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
